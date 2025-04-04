@@ -102,7 +102,15 @@ function renderParticipantsList(): void {
   });
   
   // Save to localStorage whenever we update the UI
-  storageService.saveParticipants(participants);
+  const saveSuccessful = storageService.saveParticipants(participants);
+  
+  // Show error notification if save fails
+  if (!saveSuccessful) {
+    showNotification(
+      'Failed to save your participants. Your data may not persist when you reload the page.',
+      'error'
+    );
+  }
 }
 
 // Check if name already exists (case-insensitive)
@@ -226,7 +234,7 @@ function handleDistributeTeams(): void {
   
   // Update and save which team got the extra player
   lastExtraPlayerTeam = distribution.extraPlayerTeam;
-  storageService.saveExtraPlayerTeam(lastExtraPlayerTeam);
+  const saveSuccessful = storageService.saveExtraPlayerTeam(lastExtraPlayerTeam);
   
   // Display teams
   displayTeam(distribution.redTeam, redSpymasterElement, redOperativesElement);
@@ -239,6 +247,16 @@ function handleDistributeTeams(): void {
   } else {
     // Show success message when teams are distributed
     showNotification('Teams have been successfully distributed!', 'success');
+  }
+  
+  // Show error notification if save fails
+  if (!saveSuccessful) {
+    setTimeout(() => {
+      showNotification(
+        'Failed to save team distribution information. Your next distribution might not alternate correctly.',
+        'error'
+      );
+    }, 3500); // Delay to show after the success message
   }
 }
 
@@ -289,11 +307,19 @@ function handleClearTeams(): void {
   if (confirm('Clear all names?')) {
     participants = [];
     renderParticipantsList();
-    storageService.clearParticipants();
+    const clearSuccessful = storageService.clearParticipants();
     
     // Reset the extra player tracking
     lastExtraPlayerTeam = null;
-    storageService.saveExtraPlayerTeam(null);
+    const saveExtraSuccessful = storageService.saveExtraPlayerTeam(null);
+    
+    // Show error notification if either operation fails
+    if (!clearSuccessful || !saveExtraSuccessful) {
+      showNotification(
+        'Failed to clear your data. Some information might persist when you reload the page.',
+        'error'
+      );
+    }
   }
 }
 
