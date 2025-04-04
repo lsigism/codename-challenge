@@ -298,9 +298,8 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  animation: slideDown 0.3s ease-out;
-  position: relative;
   overflow: hidden;
+  transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
 }
 
 .notification-banner.success {
@@ -319,7 +318,10 @@ button:hover {
 }
 
 .notification-banner.hidden {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -20px);
+  transition: opacity 0.3s, visibility 0s 0.3s, transform 0.3s;
 }
 
 .dismiss-notification {
@@ -354,23 +356,6 @@ button:hover {
   background-color: rgba(255, 255, 255, 0.7);
   width: 100%;
   transform-origin: left;
-}
-
-/* Animation for progress bar */
-@keyframes progress-shrink {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(0); }
-}
-
-@keyframes slideDown {
-  from {
-    transform: translate(-50%, -100px);
-    opacity: 0;
-  }
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
-  }
 }
 
 /* Responsive design */
