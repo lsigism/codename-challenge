@@ -1,16 +1,31 @@
 {
   "name": "codename-challenge",
   "version": "1.0.0",
-  "description": "",
+  "description": "A team distribution application for the Codenames board game",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack serve --mode development",
-    "build": "webpack --mode production"
+    "build": "webpack --mode production",
+    "lint": "eslint 'src/**/*.ts'",
+    "format": "prettier --write 'src/**/*.{ts,html,css}'",
+    "type-check": "tsc --noEmit"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["codenames", "team-distributor", "board-game", "typescript", "webapp"],
+  "author": "Lucas Sigismondi",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/codename-challenge.git"
+  },
+  "homepage": "https://github.com/yourusername/codename-challenge#readme",
+  "bugs": {
+    "url": "https://github.com/yourusername/codename-challenge/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "devDependencies": {
     "css-loader": "^7.1.2",
     "html-webpack-plugin": "^5.6.3",
