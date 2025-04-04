@@ -36,6 +36,8 @@ let notificationProgress: HTMLElement | null = null;
 let notificationStartTime: number = 0;
 let notificationDuration: number = 0;
 let notificationPaused: boolean = false;
+let notificationElapsedTime: number = 0; // New variable to track elapsed time when paused
+let notificationLastTimestamp: number = 0; // Tracks the last animation frame timestamp
 
 // Initialize the app
 function init(): void {
@@ -159,17 +161,28 @@ function showNotification(message: string, type: 'success' | 'error' | 'informat
     notificationBanner.appendChild(progressBar);
   }
   
-  // Configure the progress animation
-  progressBar.style.animation = `progress-shrink ${notificationDuration}ms linear forwards`;
-  notificationProgress = progressBar as HTMLElement;
+  // Reset animation state
+  notificationProgress = progressBar;
+  notificationElapsedTime = 0;
+  notificationPaused = false;
   
-  // Show the banner
-  notificationBanner.classList.remove('hidden');
+  // Set initial state
+  notificationProgress.style.transform = 'scaleX(1)';
+  
+  // Show the banner - use a small delay to ensure CSS transitions work properly
+  setTimeout(() => {
+    notificationBanner.classList.remove('hidden');
+  }, 10);
   
   // Start timer for auto-dismiss
-  notificationPaused = false;
   notificationStartTime = Date.now();
-  startNotificationTimer();
+  notificationLastTimestamp = notificationStartTime;
+  
+  // Set timer for auto-dismiss
+  notificationTimer = window.setTimeout(hideNotification, notificationDuration);
+  
+  // Start the progress bar animation
+  animateProgressBar();
   
   // Add hover events to pause timer
   notificationBanner.addEventListener('mouseenter', pauseNotificationTimer);
@@ -232,34 +245,49 @@ function updateProgressBarAnimation(remainingTime: number): void {
 
 // Pause notification timer on hover
 function pauseNotificationTimer(): void {
+  // Only pause if we're not already paused
+  if (notificationPaused) return;
+  
+  // Mark as paused
+  notificationPaused = true;
+  
+  // Clear the auto-dismiss timer
   if (notificationTimer) {
     clearTimeout(notificationTimer);
     notificationTimer = null;
   }
   
+  // Stop the animation frame
   if (notificationAnimationFrame) {
     cancelAnimationFrame(notificationAnimationFrame);
     notificationAnimationFrame = null;
   }
   
-  // Record that we're paused and how much time we've used so far
-  notificationPaused = true;
+  // Calculate and store elapsed time so far
+  notificationElapsedTime = Date.now() - notificationStartTime;
   
-  // Pause progress bar animation
-  if (notificationProgress) {
-    const computedStyle = window.getComputedStyle(notificationProgress);
-    const transform = computedStyle.getPropertyValue('transform');
-    notificationProgress.style.animation = 'none';
-    notificationProgress.style.transform = transform;
-  }
+  // Store current progress bar state - no need to modify its appearance
+  // This ensures the bar appears frozen exactly where it is
 }
 
 // Resume notification timer when no longer hovering
 function resumeNotificationTimer(): void {
   if (notificationPaused) {
     notificationPaused = false;
-    notificationStartTime = Date.now() - (notificationDuration - getRemainingTime());
-    startNotificationTimer();
+    
+    // Set the timeout for the remaining duration
+    const remainingTime = notificationDuration - notificationElapsedTime;
+    if (remainingTime <= 0) {
+      hideNotification();
+      return;
+    }
+    
+    // Set a new timeout for the remaining time
+    notificationTimer = window.setTimeout(hideNotification, remainingTime);
+    
+    // Resume animation
+    notificationLastTimestamp = performance.now();
+    animateProgressBar();
   }
 }
 
@@ -291,6 +319,46 @@ function hideNotification(): void {
   // Remove event listeners
   notificationBanner.removeEventListener('mouseenter', pauseNotificationTimer);
   notificationBanner.removeEventListener('mouseleave', resumeNotificationTimer);
+}
+
+// Animate the progress bar using requestAnimationFrame for smooth animation
+function animateProgressBar(): void {
+  // Don't start animation if already paused
+  if (notificationPaused || !notificationProgress) return;
+  
+  // Cancel any existing animation frame
+  if (notificationAnimationFrame) {
+    cancelAnimationFrame(notificationAnimationFrame);
+    notificationAnimationFrame = null;
+  }
+  
+  const animate = (timestamp: number) => {
+    // Immediately exit animation loop if paused
+    if (notificationPaused || !notificationProgress) {
+      return;
+    }
+    
+    // Calculate elapsed time since notification started
+    // When resuming from pause, use the stored elapsedTime as the baseline
+    const currentTime = Date.now();
+    const elapsed = currentTime - notificationStartTime;
+    const progress = Math.max(0, 1 - (elapsed / notificationDuration));
+    
+    // Update the progress bar
+    notificationProgress.style.transform = `scaleX(${progress})`;
+    
+    // Continue animation if not complete
+    if (progress > 0) {
+      // Continue animation only if not paused
+      notificationAnimationFrame = requestAnimationFrame(animate);
+    } else if (progress <= 0) {
+      // Ensure we reach exactly zero at the end
+      notificationProgress.style.transform = 'scaleX(0)';
+    }
+  };
+  
+  // Start the animation loop
+  notificationAnimationFrame = requestAnimationFrame(animate);
 }
 
 // Handle adding a new name
