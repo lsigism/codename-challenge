@@ -299,6 +299,8 @@ button:hover {
   align-items: center;
   justify-content: space-between;
   animation: slideDown 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
 }
 
 .notification-banner.success {
@@ -342,6 +344,22 @@ button:hover {
 .dismiss-notification:hover {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
+}
+
+.notification-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.7);
+  width: 100%;
+  transform-origin: left;
+}
+
+/* Animation for progress bar */
+@keyframes progress-shrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
 @keyframes slideDown {
