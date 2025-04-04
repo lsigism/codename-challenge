@@ -30,6 +30,13 @@ let lastExtraPlayerTeam: ExtraPlayerTeam = null;
 // Timer for auto-dismissing notifications
 let notificationTimer: number | null = null;
 
+// Notification handling variables
+let notificationAnimationFrame: number | null = null;
+let notificationProgress: HTMLElement | null = null;
+let notificationStartTime: number = 0;
+let notificationDuration: number = 0;
+let notificationPaused: boolean = false;
+
 // Initialize the app
 function init(): void {
   // Load saved participants from localStorage
@@ -123,10 +130,15 @@ function nameExists(name: string): boolean {
 
 // Show notification in the floating banner
 function showNotification(message: string, type: 'success' | 'error' | 'informative' = 'informative'): void {
-  // Clear any existing timer
+  // Clear any existing timer and animation
   if (notificationTimer) {
     clearTimeout(notificationTimer);
     notificationTimer = null;
+  }
+  
+  if (notificationAnimationFrame) {
+    cancelAnimationFrame(notificationAnimationFrame);
+    notificationAnimationFrame = null;
   }
   
   // Set the message and handle newlines
@@ -136,11 +148,130 @@ function showNotification(message: string, type: 'success' | 'error' | 'informat
   notificationBanner.className = 'notification-banner';
   notificationBanner.classList.add(type);
   
+  // Set duration based on message type and length
+  notificationDuration = getDurationForNotification(message, type);
+  
+  // Create or reset progress bar
+  let progressBar = notificationBanner.querySelector('.notification-progress') as HTMLElement;
+  if (!progressBar) {
+    progressBar = document.createElement('div');
+    progressBar.className = 'notification-progress';
+    notificationBanner.appendChild(progressBar);
+  }
+  
+  // Configure the progress animation
+  progressBar.style.animation = `progress-shrink ${notificationDuration}ms linear forwards`;
+  notificationProgress = progressBar as HTMLElement;
+  
   // Show the banner
   notificationBanner.classList.remove('hidden');
   
-  // Set timer to auto-dismiss after 3 seconds
-  notificationTimer = window.setTimeout(hideNotification, 3000);
+  // Start timer for auto-dismiss
+  notificationPaused = false;
+  notificationStartTime = Date.now();
+  startNotificationTimer();
+  
+  // Add hover events to pause timer
+  notificationBanner.addEventListener('mouseenter', pauseNotificationTimer);
+  notificationBanner.addEventListener('mouseleave', resumeNotificationTimer);
+}
+
+// Get appropriate duration based on message type and length
+function getDurationForNotification(message: string, type: 'success' | 'error' | 'informative'): number {
+  // Base duration for different types
+  let baseDuration = 0;
+  
+  switch (type) {
+    case 'error':
+      baseDuration = 5000; // Errors need more time to read
+      break;
+    case 'success':
+      baseDuration = 2500; // Success messages can be shorter
+      break;
+    case 'informative':
+      baseDuration = 4000; // Informative messages are medium length
+      break;
+    default:
+      baseDuration = 3000;
+  }
+  
+  // Add extra time for longer messages (roughly 15ms per character)
+  const extraTime = Math.min(3000, message.length * 15);
+  
+  return baseDuration + extraTime;
+}
+
+// Start or restart the notification timer
+function startNotificationTimer(): void {
+  const remainingTime = notificationDuration - (notificationPaused ? 0 : (Date.now() - notificationStartTime));
+  
+  if (remainingTime <= 0) {
+    hideNotification();
+    return;
+  }
+  
+  notificationTimer = window.setTimeout(hideNotification, remainingTime);
+  
+  // Animate progress bar
+  updateProgressBarAnimation(remainingTime);
+}
+
+// Update progress bar animation
+function updateProgressBarAnimation(remainingTime: number): void {
+  if (!notificationProgress) return;
+  
+  // Calculate how much of the animation has already played
+  const percentComplete = 1 - (remainingTime / notificationDuration);
+  
+  // Reset animation with the remaining time
+  notificationProgress.style.animation = 'none';
+  notificationProgress.offsetHeight; // Trigger reflow
+  notificationProgress.style.transform = `scaleX(${1 - percentComplete})`;
+  notificationProgress.style.animation = `progress-shrink ${remainingTime}ms linear forwards`;
+}
+
+// Pause notification timer on hover
+function pauseNotificationTimer(): void {
+  if (notificationTimer) {
+    clearTimeout(notificationTimer);
+    notificationTimer = null;
+  }
+  
+  if (notificationAnimationFrame) {
+    cancelAnimationFrame(notificationAnimationFrame);
+    notificationAnimationFrame = null;
+  }
+  
+  // Record that we're paused and how much time we've used so far
+  notificationPaused = true;
+  
+  // Pause progress bar animation
+  if (notificationProgress) {
+    const computedStyle = window.getComputedStyle(notificationProgress);
+    const transform = computedStyle.getPropertyValue('transform');
+    notificationProgress.style.animation = 'none';
+    notificationProgress.style.transform = transform;
+  }
+}
+
+// Resume notification timer when no longer hovering
+function resumeNotificationTimer(): void {
+  if (notificationPaused) {
+    notificationPaused = false;
+    notificationStartTime = Date.now() - (notificationDuration - getRemainingTime());
+    startNotificationTimer();
+  }
+}
+
+// Get remaining time based on progress bar width
+function getRemainingTime(): number {
+  if (!notificationProgress) return 0;
+  
+  const computedStyle = window.getComputedStyle(notificationProgress);
+  const transformMatrix = new DOMMatrix(computedStyle.transform);
+  const scaleX = transformMatrix.m11; // Get the scaleX value
+  
+  return notificationDuration * scaleX;
 }
 
 // Hide the notification banner
@@ -151,11 +282,27 @@ function hideNotification(): void {
     clearTimeout(notificationTimer);
     notificationTimer = null;
   }
+  
+  if (notificationAnimationFrame) {
+    cancelAnimationFrame(notificationAnimationFrame);
+    notificationAnimationFrame = null;
+  }
+  
+  // Remove event listeners
+  notificationBanner.removeEventListener('mouseenter', pauseNotificationTimer);
+  notificationBanner.removeEventListener('mouseleave', resumeNotificationTimer);
 }
 
 // Handle adding a new name
 function handleAddName(): void {
   const name = nameInput.value.trim();
+  
+  // Check if name is empty after trimming
+  if (!name) {
+    showNotification('Please enter a valid player name (cannot be empty or just spaces).', 'error');
+    nameInput.focus();
+    return;
+  }
   
   if (name) {
     // Check for duplicate name (case-insensitive)
