@@ -45,25 +45,49 @@ To test the production build (with GitHub Pages path configuration):
 
 ## Deployment
 
-### Automatic Deployment
+This application can be deployed in two different ways: automatically via GitHub Actions or manually using the gh-pages npm package. Both methods use the same build script but differ in how the deployment is handled.
+
+### Automatic Deployment with GitHub Actions
 
 This application is deployed using GitHub Pages and can be accessed at:
 [https://lsigism.github.io/codename-challenge/](https://lsigism.github.io/codename-challenge/)
 
-Deployment happens automatically when changes are merged to the `main` branch via the GitHub Actions workflow.
+Deployment happens automatically when changes are pushed to the `main` branch. Behind the scenes:
 
-### Manual Deployment
+1. The GitHub Actions workflow in `.github/workflows/deploy.yml` is triggered
+2. The workflow:
+   - Checks out your code from the repository
+   - Sets up Node.js with the required version
+   - Installs dependencies using `npm ci`
+   - Builds the application using `npm run build:gh-pages`
+   - Configures the GitHub Pages environment
+   - Uploads the `dist` directory as a deployment artifact
+   - Deploys the artifact to GitHub Pages using GitHub's official deploy-pages action
+3. The deployment is published to the same URL as the manual deployment
 
-To manually deploy the application to GitHub Pages:
+This automatic process ensures your site is rebuilt and deployed whenever you push changes to the `main` branch, without requiring any manual steps.
+
+You can view the complete workflow configuration in `.github/workflows/deploy.yml`.
+
+### Manual Deployment with gh-pages package
+
+For quick testing or when automatic deployment isn't suitable, you can manually deploy:
 
 1. Run `npm run deploy`
-2. This will build the application and deploy it to the `gh-pages` branch
-3. GitHub Pages will serve the content from this branch at the same URL: [https://lsigism.github.io/codename-challenge/](https://lsigism.github.io/codename-challenge/)
-4. This is useful for quickly testing changes without needing to merge to main
+2. Behind the scenes, this command:
+   - First runs the `predeploy` script automatically (due to npm's script hooks)
+   - The `predeploy` script executes `npm run build:gh-pages` to build your application
+   - The build process creates the production files in the `dist` directory
+   - Then the `gh-pages` package takes the contents of the `dist` folder
+   - It commits these files to the `gh-pages` branch
+   - Finally, it pushes this branch to GitHub
+3. GitHub Pages will serve the content from this branch at: [https://lsigism.github.io/codename-challenge/](https://lsigism.github.io/codename-challenge/)
 
-**Note:** Whether you deploy manually or via the automatic workflow, the same production URL is used.
+**Note:** Both deployment methods use the same `build:gh-pages` script to create the production bundle, but they differ in how the deployment is handled.
 
-## About the gh-pages Branch
+## GitHub Pages Configuration
+
+### About the gh-pages Branch
 
 The `gh-pages` branch is a special branch used by GitHub Pages for deployment. Here's what you should know:
 
