@@ -8,20 +8,29 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack serve --mode development",
     "build": "webpack --mode production",
+    "build:gh-pages": "NODE_ENV=production webpack --mode production",
+    "predeploy": "npm run build:gh-pages",
+    "deploy": "gh-pages -d dist",
     "lint": "eslint 'src/**/*.ts'",
     "format": "prettier --write 'src/**/*.{ts,html,css}'",
     "type-check": "tsc --noEmit"
   },
-  "keywords": ["codenames", "team-distributor", "board-game", "typescript", "webapp"],
+  "keywords": [
+    "codenames",
+    "team-distributor",
+    "board-game",
+    "typescript",
+    "webapp"
+  ],
   "author": "Lucas Sigismondi",
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/codename-challenge.git"
+    "url": "https://github.com/lsigism/codename-challenge.git"
   },
-  "homepage": "https://github.com/yourusername/codename-challenge#readme",
+  "homepage": "https://lsigism.github.io/codename-challenge/",
   "bugs": {
-    "url": "https://github.com/yourusername/codename-challenge/issues"
+    "url": "https://github.com/lsigism/codename-challenge/issues"
   },
   "engines": {
     "node": ">=16.0.0"
@@ -31,6 +40,7 @@
     "@typescript-eslint/parser": "^7.2.0",
     "css-loader": "^7.1.2",
     "eslint": "^8.57.0",
+    "gh-pages": "^6.3.0",
     "html-webpack-plugin": "^5.6.3",
     "prettier": "^3.2.5",
     "style-loader": "^4.0.0",
