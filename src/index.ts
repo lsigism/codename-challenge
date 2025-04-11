@@ -21,6 +21,13 @@ const notificationBanner = document.getElementById('notificationBanner') as HTML
 const notificationMessage = document.getElementById('notificationMessage') as HTMLSpanElement;
 const dismissNotification = document.getElementById('dismissNotification') as HTMLButtonElement;
 
+// Confirmation dialog elements
+const confirmationDialog = document.getElementById('confirmationDialog') as HTMLDivElement;
+const confirmationTitle = document.getElementById('confirmationTitle') as HTMLHeadingElement;
+const confirmationMessage = document.getElementById('confirmationMessage') as HTMLParagraphElement;
+const confirmOkButton = document.getElementById('confirmOk') as HTMLButtonElement;
+const confirmCancelButton = document.getElementById('confirmCancel') as HTMLButtonElement;
+
 // Participants array
 let participants: Participant[] = [];
 
@@ -510,31 +517,109 @@ function displayTeam(
   });
 }
 
+// Show confirmation dialog
+function showConfirmationDialog(title: string, message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    // Set dialog content
+    confirmationTitle.textContent = title;
+    confirmationMessage.textContent = message;
+    
+    // Show dialog
+    confirmationDialog.classList.remove('hidden');
+    
+    // Handle button clicks
+    const handleConfirm = () => {
+      hideConfirmationDialog();
+      resolve(true);
+    };
+    
+    const handleCancel = () => {
+      hideConfirmationDialog();
+      resolve(false);
+    };
+    
+    // Add event listeners
+    confirmOkButton.addEventListener('click', handleConfirm);
+    confirmCancelButton.addEventListener('click', handleCancel);
+    confirmationDialog.querySelector('.confirmation-overlay')?.addEventListener('click', handleCancel);
+    
+    // Add keyboard support
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCancel();
+      } else if (e.key === 'Enter') {
+        handleConfirm();
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeydown);
+    
+    // Function to remove event listeners
+    function hideConfirmationDialog() {
+      confirmationDialog.classList.add('hidden');
+      confirmOkButton.removeEventListener('click', handleConfirm);
+      confirmCancelButton.removeEventListener('click', handleCancel);
+      confirmationDialog.querySelector('.confirmation-overlay')?.removeEventListener('click', handleCancel);
+      document.removeEventListener('keydown', handleKeydown);
+    }
+  });
+}
+
 // Handle clearing teams
-function handleClearTeams(): void {
-  // Clear UI
-  clearTeamsDisplay();
-  
+async function handleClearTeams(): Promise<void> {
   // Hide any active notification
   hideNotification();
   
-  // Optionally clear the participants list
-  if (confirm('Clear all names?')) {
-    participants = [];
-    renderParticipantsList();
-    const clearSuccessful = storageService.clearParticipants();
-    
-    // Reset the extra player tracking
-    lastExtraPlayerTeam = null;
-    const saveExtraSuccessful = storageService.saveExtraPlayerTeam(null);
-    
-    // Show error notification if either operation fails
-    if (!clearSuccessful || !saveExtraSuccessful) {
+  // Check if there's anything to clear
+  const hasParticipants = participants.length > 0;
+  const hasDistributedTeams = 
+    redSpymasterElement.innerHTML !== '' || 
+    redOperativesElement.innerHTML !== '' || 
+    blueSpymasterElement.innerHTML !== '' || 
+    blueOperativesElement.innerHTML !== '';
+  
+  // If there's nothing to clear, show an informative message
+  if (!hasParticipants && !hasDistributedTeams) {
+    showNotification('Nothing to clear. Add players or distribute teams first.', 'informative');
+    return;
+  }
+  
+  // Only show confirmation if there's something to clear
+  const confirmed = await showConfirmationDialog(
+    'Confirm Clear Action', 
+    'Are you sure you want to clear all participating players and the chosen players (if a draw has occurred)? This action cannot be undone.'
+  );
+  
+  if (!confirmed) {
+    // User canceled the action
+    return;
+  }
+  
+  // Clear the UI
+  clearTeamsDisplay();
+  
+  // Clear the data
+  participants = [];
+  renderParticipantsList();
+  
+  // Reset the extra player tracking
+  lastExtraPlayerTeam = null;
+  
+  // Save changes to storage
+  const clearSuccessful = storageService.clearParticipants();
+  const saveExtraSuccessful = storageService.saveExtraPlayerTeam(null);
+  
+  // Show success message
+  showNotification('All players have been cleared.', 'success');
+  
+  // Show error notification if either storage operation fails
+  if (!clearSuccessful || !saveExtraSuccessful) {
+    setTimeout(() => {
       showNotification(
-        'Failed to clear your data. Some information might persist when you reload the page.',
+        'Failed to clear your data from storage. Some information might persist when you reload the page.',
         'error'
       );
-    }
+    }, 3000); // Delay to show after success message
   }
 }
 
