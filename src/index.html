@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Cipher Weaver</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Add the floating banner element -->
+  <div id="notificationBanner" class="notification-banner hidden">
+    <span id="notificationMessage"></span>
+    <button id="dismissNotification" class="dismiss-notification" title="Dismiss">×</button>
+  </div>
+
+  <!-- Add custom confirmation dialog -->
+  <div id="confirmationDialog" class="confirmation-dialog hidden">
+    <div class="confirmation-content">
+      <h3 id="confirmationTitle">Confirmation</h3>
+      <p id="confirmationMessage">Are you sure?</p>
+      <div class="confirmation-buttons">
+        <button id="confirmCancel" class="cancel-button">Cancel</button>
+        <button id="confirmOk" class="confirm-button">Confirm</button>
+      </div>
+    </div>
+    <div class="confirmation-overlay"></div>
+  </div>
+
+  <div class="container">
+    <header class="app-header">
+      <div class="header-content">
+        <h1>The Cipher Weaver</h1>
+        <p class="subtitle">Team Distribution App</p>
+      </div>
+    </header>
+    
+    <div class="input-section">
+      <h2>Add Players</h2>
+      <!-- Replace textarea with name input and add button -->
+      <div class="name-input-container">
+        <input type="text" id="nameInput" placeholder="Enter a name" />
+        <button id="addNameButton">Add Name</button>
+      </div>
+      <!-- Add validation message area -->
+      <div id="validationMessage" class="validation-message"></div>
+      
+      <!-- Add new section for name selection -->
+      <div class="name-selection-container">
+        <h2>Participating Players</h2>
+        <div id="namesList" class="names-list">
+          <!-- Names will be added here dynamically -->
+        </div>
+      </div>
+      
+      <div class="buttons">
+        <button id="distributeButton">Distribute Teams</button>
+        <button id="clearButton">Clear</button>
+      </div>
+    </div>
+    
+    <div class="teams-container">
+      <div class="team red-team">
+        <h2>Red Team</h2>
+        <div class="role spymaster">
+          <h3>Spymaster</h3>
+          <div id="redSpymaster" class="member-list"></div>
+        </div>
+        <div class="role operatives">
+          <h3>Operatives</h3>
+          <div id="redOperatives" class="member-list"></div>
+        </div>
+      </div>
+      
+      <div class="team blue-team">
+        <h2>Blue Team</h2>
+        <div class="role spymaster">
+          <h3>Spymaster</h3>
+          <div id="blueSpymaster" class="member-list"></div>
+        </div>
+        <div class="role operatives">
+          <h3>Operatives</h3>
+          <div id="blueOperatives" class="member-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
