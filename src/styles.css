@@ -1,6 +1,6 @@
 /* Global styles */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   margin: 0;
   padding: 20px;
@@ -11,25 +11,71 @@ body {
 .container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0;
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Ensure the header background stays within border radius */
+}
+
+/* Header styling */
+.app-header {
+  background: linear-gradient(to bottom, #1a2a6c, #223870);
+  padding: 40px 20px;
+  position: relative;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSI+PC9yZWN0Pgo8L3N2Zz4=');
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.header-content {
+  position: relative;
+  z-index: 1;
 }
 
 h1 {
-  text-align: center;
-  color: #444;
-  margin-bottom: 10px; /* Reduced margin to make room for subtitle */
+  font-family: 'Special Elite', cursive;
+  font-size: 3rem;
+  letter-spacing: 1px;
+  color: #fff;
+  margin: 0 0 10px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  display: inline-block;
+}
+
+h1::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Subtitle styling */
 .subtitle {
-  text-align: center;
-  color: #666;
-  font-size: 1rem;
-  margin-top: 0;
-  margin-bottom: 30px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 15px 0 0 0;
+  font-weight: 400;
+  letter-spacing: 1px;
 }
 
 h2 {
@@ -46,6 +92,7 @@ h3 {
 /* Input section */
 .input-section {
   margin-bottom: 30px;
+  padding: 0 20px;
 }
 
 textarea {
@@ -92,6 +139,7 @@ button:hover {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
+  padding: 0 20px 20px;
 }
 
 .team {
